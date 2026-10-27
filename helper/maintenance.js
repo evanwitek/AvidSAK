@@ -922,16 +922,16 @@ module.exports = function createMaintenance(ctx) {
   var sendJson = ctx.sendJson;
 
   return function handle(req, res, pathname, query) {
+    // Same trust rule as /api/browse: only pages served from this machine may use these routes.
+    var origin = req.headers.origin;
+    if (origin && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
+      return sendJson(req, res, 403, { error: 'Forbidden origin' });
+    }
     if (req.method === 'GET' && pathname === '/api/maint/env') {
       return handleEnv(req, res, sendJson);
     }
     if (req.method !== 'POST') {
       return sendJson(req, res, 405, { error: 'Method not allowed; use POST' });
-    }
-    // Same trust rule as /api/browse: only pages served from this machine may change anything.
-    var origin = req.headers.origin;
-    if (origin && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
-      return sendJson(req, res, 403, { error: 'Forbidden origin' });
     }
     readJsonBody(req, function (err, body) {
       if (err) {
