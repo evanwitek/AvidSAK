@@ -53,8 +53,10 @@
     return String(s === undefined || s === null ? '' : s).replace(/^\s+|\s+$/g, '');
   }
 
-  function setText(el, text) {
+  function setText(el, text, tone) {
     el.textContent = text || '';
+    el.classList.toggle('is-error', tone === 'error');
+    el.classList.toggle('is-ok', tone === 'ok');
   }
 
   function log(line) {
@@ -553,7 +555,7 @@
       browsing = false;
       setText(fileStatusEl, '');
       if (err) {
-        setText(fileStatusEl, 'Could not open the file dialog: ' + err.message);
+        setText(fileStatusEl, 'Could not open the file dialog: ' + err.message, 'error');
         refresh();
         return;
       }

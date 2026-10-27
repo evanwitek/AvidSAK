@@ -130,8 +130,11 @@
 
   // ---- small DOM helpers ----
 
-  function setText(el, text) {
+  // tone: 'error' (red), 'ok' (green), or omitted for amber, which marks something that needs attention.
+  function setText(el, text, tone) {
     el.textContent = text || '';
+    el.classList.toggle('is-error', tone === 'error');
+    el.classList.toggle('is-ok', tone === 'ok');
   }
 
   function clear(el) {
@@ -236,28 +239,42 @@
     detailsBtn.textContent = open ? 'Hide details' : 'Show details';
   }
 
-  // A destructive button: first click arms it, second click within 6 s runs it.
-  var armed = {};
+  // Destructive actions: the confirm row names what will happen; nothing runs until the user confirms.
+  var confirmRowEl = byId('mt-confirm');
+  var confirmTextEl = byId('mt-confirm-text');
+  var confirmOkEl = byId('mt-confirm-ok');
+  var confirmCancelEl = byId('mt-confirm-cancel');
+  var pendingAction = null;
 
-  function confirmThen(button, label, fn) {
-    var key = button.id;
-    if (armed[key]) {
-      clearTimeout(armed[key].timer);
-      delete armed[key];
-      button.textContent = button.getAttribute('data-label') || button.textContent;
-      fn();
-      return;
+  function askConfirm(message, okLabel, fn) {
+    pendingAction = fn;
+    confirmTextEl.textContent = message;
+    confirmOkEl.textContent = okLabel;
+    confirmRowEl.hidden = false;
+    if (confirmRowEl.scrollIntoView) {
+      confirmRowEl.scrollIntoView({ block: 'nearest' });
     }
-    button.setAttribute('data-label', button.textContent);
-    button.textContent = label;
-    armed[key] = {
-      timer: setTimeout(function () {
-        var original = button.getAttribute('data-label') || label;
-        delete armed[key];
-        button.textContent = original;
-      }, 6000)
-    };
+    confirmCancelEl.focus();
   }
+
+  function closeConfirm() {
+    pendingAction = null;
+    confirmRowEl.hidden = true;
+  }
+
+  confirmOkEl.onclick = function () {
+    var fn = pendingAction;
+    closeConfirm();
+    if (fn) {
+      fn();
+    }
+  };
+  confirmCancelEl.onclick = closeConfirm;
+  confirmRowEl.onkeydown = function (ev) {
+    if (ev.key === 'Escape') {
+      closeConfirm();
+    }
+  };
 
   function setBusy(button, busy, busyText) {
     if (busy) {
@@ -1039,9 +1056,9 @@
       setBusy(scanBtn, false);
       var result = evaluate(err, response);
       if (result.ok) {
-        setText(scanNoteEl, 'Scan requested for ' + destination + '. Media Composer rebuilds the databases in the background.');
+        setText(scanNoteEl, 'Scan requested for ' + destination + '. Media Composer rebuilds the databases in the background.', 'ok');
       } else {
-        setText(scanNoteEl, 'Scan failed: ' + result.text);
+        setText(scanNoteEl, 'Scan failed: ' + result.text, 'error');
       }
     });
   }
@@ -1050,7 +1067,7 @@
   function runCommandByName(pattern, noteEl) {
     var problem = mcapiUnavailable();
     if (problem) {
-      setText(noteEl, problem);
+      setText(noteEl, problem, 'error');
       return;
     }
     setText(noteEl, 'Looking for a Media Composer command matching ' + pattern + '...');
@@ -1058,7 +1075,7 @@
       return new (cls('GetListOfCommandsRequest'))();
     }, 'getListOfCommands', function (err, response) {
       if (err) {
-        setText(noteEl, 'Could not read the command list: ' + describeError(err));
+        setText(noteEl, 'Could not read the command list: ' + describeError(err), 'error');
         return;
       }
       var matches = [];
@@ -1069,7 +1086,7 @@
           }
         });
       } catch (e) {
-        setText(noteEl, 'Could not read the command list: ' + e.message);
+        setText(noteEl, 'Could not read the command list: ' + e.message, 'error');
         return;
       }
       if (!matches.length) {
@@ -1088,7 +1105,7 @@
         var result = evaluate(doErr, doResponse);
         setText(noteEl, result.ok
           ? ('Sent "' + command.getName() + '". The result arrives as a Media Composer notification.')
-          : ('"' + command.getName() + '" failed: ' + result.text));
+          : ('"' + command.getName() + '" failed: ' + result.text), result.ok ? 'ok' : 'error');
       });
     });
   }
@@ -1117,7 +1134,7 @@
     requestJson('POST', '/api/maint/cleanup', { items: items, confirm: true }, function (err, data) {
       setBusy(cacheGoBtn, false);
       if (err) {
-        setText(cacheStatusEl, err.message);
+        setText(cacheStatusEl, err.message, 'error');
         log('cleanup: ' + err.message);
         return;
       }
@@ -1146,7 +1163,7 @@
     }, function (err, data) {
       setBusy(clear ? atticClearBtn : atticArchiveBtn, false);
       if (err) {
-        setText(atticStatusEl, err.message);
+        setText(atticStatusEl, err.message, 'error');
         log('attic: ' + err.message);
         return;
       }
@@ -1167,7 +1184,7 @@
   function listBins() {
     var problem = mcapiUnavailable();
     if (problem) {
-      setText(binsStatusEl, problem);
+      setText(binsStatusEl, problem, 'error');
       return;
     }
     setBusy(binsBtn, true, 'Listing...');
@@ -1192,7 +1209,7 @@
     }, function (err) {
       if (err) {
         setBusy(binsBtn, false);
-        setText(binsStatusEl, 'GetBins failed: ' + describeError(err));
+        setText(binsStatusEl, 'GetBins failed: ' + describeError(err), 'error');
         return;
       }
       if (!paths.length) {
@@ -1246,14 +1263,14 @@
   function fillProjectPath() {
     var problem = mcapiUnavailable();
     if (problem) {
-      setText(binsStatusEl, problem);
+      setText(binsStatusEl, problem, 'error');
       return;
     }
     callUnary('GetOpenProjectInfo', CALL_TIMEOUT_MS, function () {
       return new (cls('GetOpenProjectInfoRequest'))();
     }, 'getOpenProjectInfo', function (err, response) {
       if (err) {
-        setText(binsStatusEl, 'Could not read the open project: ' + describeError(err));
+        setText(binsStatusEl, 'Could not read the open project: ' + describeError(err), 'error');
         return;
       }
       try {
@@ -1265,7 +1282,7 @@
           setText(binsStatusEl, 'No project is open.');
         }
       } catch (e) {
-        setText(binsStatusEl, e.message);
+        setText(binsStatusEl, e.message, 'error');
       }
     });
   }
@@ -1279,13 +1296,13 @@
     setText(lockStatusEl, 'Scanning ' + projectPath + ' for .lck files...');
     requestJson('POST', '/api/maint/locks', { projectPath: projectPath }, function (err, data) {
       if (err) {
-        setText(lockStatusEl, err.message);
+        setText(lockStatusEl, err.message, 'error');
         return;
       }
       clear(lockListEl);
       var locks = data.locks || [];
       if (!locks.length) {
-        setText(lockStatusEl, finalStatus || 'No .lck files in this project.');
+        setText(lockStatusEl, finalStatus || 'No .lck files in this project.', 'ok');
         return;
       }
       locks.forEach(function (lock) {
@@ -1315,7 +1332,7 @@
     setText(lockStatusEl, 'Releasing ' + files.length + ' lock(s)...');
     requestJson('POST', '/api/maint/release-locks', { projectPath: projectPath, files: files, confirm: true }, function (err, data) {
       if (err) {
-        setText(lockStatusEl, err.message);
+        setText(lockStatusEl, err.message, 'error');
         return;
       }
       var ok = 0;
@@ -1343,7 +1360,7 @@
     clear(mxfReportEl);
     requestJson('POST', '/api/maint/mxf', { action: 'count', folder: folder, limit: Number(mxfLimitEl.value) || 5000 }, function (err, data) {
       if (err) {
-        setText(mxfStatusEl, err.message);
+        setText(mxfStatusEl, err.message, 'error');
         return;
       }
       var limit = Number(data.limit) || 5000;
@@ -1379,7 +1396,7 @@
       confirm: true
     }, function (err, data) {
       if (err) {
-        setText(mxfStatusEl, err.message);
+        setText(mxfStatusEl, err.message, 'error');
         return;
       }
       setText(mxfStatusEl, data.message || 'Done.');
@@ -1400,7 +1417,7 @@
     setText(mxfStatusEl, 'Moving msmMMOB.mdb and msmFMID.pmr to quarantine...');
     requestJson('POST', '/api/maint/mxf', { action: 'quarantine-databases', folder: folder, confirm: true }, function (err, data) {
       if (err) {
-        setText(mxfStatusEl, err.message);
+        setText(mxfStatusEl, err.message, 'error');
         return;
       }
       if (data.message) {
@@ -1426,7 +1443,7 @@
   function loadCommands() {
     var problem = mcapiUnavailable();
     if (problem) {
-      setText(cmdStatusEl, problem);
+      setText(cmdStatusEl, problem, 'error');
       return;
     }
     setBusy(cmdLoadBtn, true, 'Loading...');
@@ -1436,7 +1453,7 @@
     }, 'getListOfCommands', function (err, response) {
       setBusy(cmdLoadBtn, false);
       if (err) {
-        setText(cmdStatusEl, 'GetListOfCommands failed: ' + describeError(err));
+        setText(cmdStatusEl, 'GetListOfCommands failed: ' + describeError(err), 'error');
         return;
       }
       commands = [];
@@ -1450,7 +1467,7 @@
           });
         });
       } catch (e) {
-        setText(cmdStatusEl, 'Could not read the command list: ' + e.message);
+        setText(cmdStatusEl, 'Could not read the command list: ' + e.message, 'error');
         return;
       }
       setText(cmdStatusEl, commands.length + ' command(s). Command ids last until Media Composer quits.');
@@ -1510,7 +1527,7 @@
       var result = evaluate(err, response);
       setText(cmdStatusEl, result.ok
         ? ('Sent "' + command.name + '". The result arrives as a notification.')
-        : ('"' + command.name + '" failed: ' + result.text));
+        : ('"' + command.name + '" failed: ' + result.text), result.ok ? 'ok' : 'error');
     });
   }
 
@@ -1532,10 +1549,10 @@
     requestJson('POST', '/api/maint/service', { name: name, confirm: true }, function (err, data) {
       setBusy(svcRestartBtn, false);
       if (err) {
-        setText(sysStatusEl, err.message);
+        setText(sysStatusEl, err.message, 'error');
         return;
       }
-      setText(sysStatusEl, data.name + ': ' + (data.output || 'restarted'));
+      setText(sysStatusEl, data.name + ': ' + (data.output || 'restarted'), 'ok');
       refreshEnv();
     });
   }
@@ -1546,10 +1563,10 @@
     requestJson('POST', '/api/maint/keys', { action: action, confirm: true }, function (err, data) {
       setBusy(button, false);
       if (err) {
-        setText(sysStatusEl, err.message + ' Bring Media Composer to the front and try again.');
+        setText(sysStatusEl, err.message + ' Bring Media Composer to the front and try again.', 'error');
         return;
       }
-      setText(sysStatusEl, 'Sent ' + action + '. Check the Media Composer window.');
+      setText(sysStatusEl, 'Sent ' + action + '. Check the Media Composer window.', 'ok');
       log('keys: ' + action + ' - ' + (data.output || ''));
     });
   }
@@ -1570,7 +1587,7 @@
     setBusy(volRefreshBtn, true, 'Loading...');
     loadVolumes(function (err) {
       setBusy(volRefreshBtn, false);
-      setText(scanNoteEl, err ? err.message : (volumes.length + ' volume(s).'));
+      setText(scanNoteEl, err ? err.message : (volumes.length + ' volume(s).'), err ? 'error' : '');
     });
   };
   scanBtn.onclick = scanFolder;
@@ -1590,7 +1607,7 @@
     });
   };
   cacheGoBtn.onclick = function () {
-    confirmThen(cacheGoBtn, 'Click again to rebuild', rebuildCaches);
+    askConfirm('Rename the checked cache folders and move the checked state files to quarantine. Media Composer must be closed.', 'Rebuild', rebuildCaches);
   };
 
   atticRefreshBtn.onclick = function () {
@@ -1601,12 +1618,12 @@
     });
   };
   atticArchiveBtn.onclick = function () {
-    confirmThen(atticArchiveBtn, 'Click again to archive', function () {
+    askConfirm('Write a zip of the checked Attic projects to quarantine. Nothing is removed from the project folders.', 'Archive', function () {
       archiveAttic(false);
     });
   };
   atticClearBtn.onclick = function () {
-    confirmThen(atticClearBtn, 'Click again to archive and clear', function () {
+    askConfirm('Archive the checked Attic projects, verify the zip, then delete their project folders. This cannot be undone from the panel.', 'Archive and delete', function () {
       archiveAttic(true);
     });
   };
@@ -1615,15 +1632,15 @@
   binsBtn.onclick = listBins;
   lockScanBtn.onclick = scanLocks;
   lockReleaseBtn.onclick = function () {
-    confirmThen(lockReleaseBtn, 'Click again to release', releaseLocks);
+    askConfirm('Move the checked .lck files to quarantine. Only do this for locks whose editor is no longer open.', 'Release locks', releaseLocks);
   };
 
   mxfCheckBtn.onclick = checkMxf;
   mxfSplitBtn.onclick = function () {
-    confirmThen(mxfSplitBtn, 'Click again to split', splitMxf);
+    askConfirm('Move the oldest MXF files out of this folder into the next numbered folder. Nothing is deleted.', 'Split folder', splitMxf);
   };
   dbCleanBtn.onclick = function () {
-    confirmThen(dbCleanBtn, 'Click again to quarantine', quarantineDatabases);
+    askConfirm('Move msmMMOB.mdb and msmFMID.pmr to quarantine. Media Composer must be closed; rescan afterwards.', 'Quarantine databases', quarantineDatabases);
   };
 
   cmdLoadBtn.onclick = loadCommands;
@@ -1636,7 +1653,8 @@
     });
   };
   svcRestartBtn.onclick = function () {
-    confirmThen(svcRestartBtn, 'Click again to restart', restartService);
+    var chosen = svcNameEl.options[svcNameEl.selectedIndex];
+    askConfirm('Restart ' + (chosen ? chosen.text : 'the selected process') + '. Open Media Composer work may be interrupted.', 'Restart', restartService);
   };
 
   byId('mt-keys-workgroup-on').onclick = function () {

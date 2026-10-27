@@ -83,6 +83,12 @@ button:disabled {
   cursor: not-allowed;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+}
+
 #create-btn:not(:disabled), #confirm-ok {
   background: var(--accent-strong);
   border-color: #3a7fc7;
@@ -302,6 +308,10 @@ button:disabled {
 .state {
   flex: none;
   min-width: 100px;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   color: var(--text-3);
@@ -481,6 +491,91 @@ button:disabled {
   .tool-section > summary::before {
     transition: none;
   }
+}
+
+/* Primary action (Browse... while no folder is chosen) and destructive actions. */
+button.btn-primary:not(:disabled) {
+  background: var(--accent-strong);
+  border-color: #3a7fc7;
+  color: #fff;
+  font-weight: 600;
+}
+
+button.btn-primary:not(:disabled):hover {
+  background: #3779c2;
+  border-color: #4a8ad6;
+}
+
+button.btn-danger:not(:disabled) {
+  color: #ffd6d2;
+  border-color: #b5524a;
+  background: rgba(255, 138, 128, 0.12);
+}
+
+button.btn-danger:not(:disabled):hover {
+  color: #fff;
+  border-color: var(--red);
+  background: rgba(255, 138, 128, 0.22);
+}
+
+/* Status tones: red for failures, green for success, amber (the default) for "needs your attention". */
+.ex-status.is-error {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.ex-status.is-ok {
+  color: var(--green);
+}
+
+#status.is-error {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.tree-empty {
+  padding: 10px 8px;
+  color: var(--text-2);
+  border: 1px dashed #8a8a8a;
+  border-radius: var(--radius);
+  list-style: none;
+}
+
+.mt-group {
+  margin: 16px 0 6px 0;
+  padding-bottom: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.mt-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  background: var(--well);
+  border: 1px solid rgba(255, 138, 128, 0.5);
+  border-radius: var(--radius);
+}
+
+.mt-confirm-text {
+  flex: 1 1 220px;
+  color: var(--text);
+}
+
+#mt-confirm-ok {
+  color: #fff;
+  background: #a8413a;
+  border-color: var(--red);
+  font-weight: 600;
+}
+
+#mt-confirm-ok:hover:not(:disabled) {
+  background: #bd4d45;
 }
 
 /* Export tab. Controls use a lighter border (#8a8a8a, 4.1:1 on the body background) so their edges stay visible. */

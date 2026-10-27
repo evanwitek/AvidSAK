@@ -68,6 +68,7 @@
 
   function setStatus(msg) {
     statusEl.textContent = msg || '';
+    statusEl.classList.toggle('is-error', /^(Error|Could not)/.test(msg || ''));
   }
 
   function plural(n, one, many) {

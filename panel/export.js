@@ -198,8 +198,10 @@
     }
   }
 
-  function setText(el, text) {
+  function setText(el, text, tone) {
     el.textContent = text || '';
+    el.classList.toggle('is-error', tone === 'error');
+    el.classList.toggle('is-ok', tone === 'ok');
   }
 
   // ---- errors, in the same form as the Organize tab ----
@@ -718,7 +720,7 @@
         log('OpenBin ' + binRef + ' failed: ' + opened.text);
         if (isBinNotFound(openErr, opened)) {
           listing = false;
-          setText(binStatusEl, 'Bin not found: ' + binRef + '. ' + opened.text);
+          setText(binStatusEl, 'Bin not found: ' + binRef + '. ' + opened.text, 'error');
           refresh();
           return;
         }
@@ -741,7 +743,7 @@
       }, function (err) {
         listing = false;
         if (err) {
-          setText(binStatusEl, 'Could not list the sequences in ' + binRef + ': ' + describeError(err) + openNote);
+          setText(binStatusEl, 'Could not list the sequences in ' + binRef + ': ' + describeError(err) + openNote, 'error');
         } else {
           binItems = found;
           setText(binStatusEl, found.length === 0
@@ -785,7 +787,7 @@
     try {
       list = JSON.parse(raw);
     } catch (e) {
-      setText(dropStatusEl, 'Nothing was added: the dropped data is not valid JSON (' + e.message + ').');
+      setText(dropStatusEl, 'Nothing was added: the dropped data is not valid JSON (' + e.message + ').', 'error');
       return;
     }
     if (!(list instanceof Array)) {
@@ -1462,7 +1464,7 @@
       updateFormatNote();
       refresh();
       if (err) {
-        setText(formatNoteEl, 'Could not open the folder dialog: ' + err.message);
+        setText(formatNoteEl, 'Could not open the folder dialog: ' + err.message, 'error');
         return;
       }
       if (data.path) {

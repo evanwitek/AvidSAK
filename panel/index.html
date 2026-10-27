@@ -17,7 +17,6 @@
 
   <div id="panel-organize" class="tabpanel" role="tabpanel" aria-labelledby="tab-organize">
     <div class="panel-head">
-      <h2>Organize and Import</h2>
       <button class="sections-all" type="button">Collapse all</button>
     </div>
 
@@ -26,7 +25,7 @@
       <div class="section-body">
         <div id="toolbar">
           <div id="root-row">
-            <button id="browse-btn" type="button">Browse...</button>
+            <button id="browse-btn" class="btn-primary" type="button">Browse...</button>
           </div>
           <div id="root-header">
             <span id="root-path" class="path">(no folder selected)</span>
@@ -45,7 +44,7 @@
           <button id="select-none-btn" type="button" disabled>Select none</button>
         </div>
         <div id="status" role="status"></div>
-        <ul id="tree"></ul>
+        <ul id="tree"><li class="tree-empty">Choose the folder that holds your media. Its subfolders that contain media become bins.</li></ul>
       </div>
     </details>
 
@@ -72,7 +71,6 @@
 
   <div id="panel-script" class="tabpanel" role="tabpanel" aria-labelledby="tab-script" hidden>
     <div class="panel-head">
-      <h2>Script Import</h2>
       <button class="sections-all" type="button">Collapse all</button>
     </div>
 
@@ -108,7 +106,6 @@
 
   <div id="panel-export" class="tabpanel" role="tabpanel" aria-labelledby="tab-export" hidden>
     <div class="panel-head">
-      <h2>Export</h2>
       <button class="sections-all" type="button">Collapse all</button>
     </div>
 
@@ -231,11 +228,16 @@
 
   <div id="panel-maintenance" class="tabpanel" role="tabpanel" aria-labelledby="tab-maintenance" hidden>
     <div class="panel-head">
-      <h2>Maintenance</h2>
       <button class="sections-all" type="button">Collapse all</button>
     </div>
 
     <p id="mt-banner" class="ex-status" role="status"></p>
+
+    <div id="mt-confirm" class="mt-confirm" role="alertdialog" aria-labelledby="mt-confirm-text" hidden>
+      <span id="mt-confirm-text" class="mt-confirm-text"></span>
+      <button id="mt-confirm-cancel" type="button">Cancel</button>
+      <button id="mt-confirm-ok" type="button">Confirm</button>
+    </div>
 
     <details class="tool-section" id="sec-mt-health" open>
       <summary>Health check</summary>
@@ -250,7 +252,7 @@
       </div>
     </details>
 
-    <details class="tool-section" id="sec-mt-databases" open>
+    <details class="tool-section" id="sec-mt-databases">
       <summary>Media databases</summary>
       <div class="section-body">
         <div class="ex-field">
@@ -271,12 +273,14 @@
       </div>
     </details>
 
-    <details class="tool-section" id="sec-mt-caches" open>
+    <h3 class="mt-group">Repairs (these move or rename files; nothing is deleted except Attic projects after archiving)</h3>
+
+    <details class="tool-section" id="sec-mt-caches">
       <summary>Caches and state files</summary>
       <div class="section-body">
         <div class="ex-row">
           <button id="mt-cache-refresh" type="button">Check sizes</button>
-          <button id="mt-cache-go" type="button">Rebuild selected</button>
+          <button id="mt-cache-go" class="btn-danger" type="button">Rebuild selected</button>
         </div>
         <p class="ex-hint">Media Composer must be quit. Cache folders are renamed with an <code>_old-&lt;timestamp&gt;</code> suffix and rebuilt on next launch; MCState and site setting files are moved to quarantine.</p>
         <div id="mt-cache-list" class="mt-checks"></div>
@@ -284,13 +288,13 @@
       </div>
     </details>
 
-    <details class="tool-section" id="sec-mt-attic" open>
+    <details class="tool-section" id="sec-mt-attic">
       <summary>Avid Attic</summary>
       <div class="section-body">
         <div class="ex-row">
           <button id="mt-attic-refresh" type="button">Check sizes</button>
           <button id="mt-attic-archive" type="button">Archive checked</button>
-          <button id="mt-attic-clear" type="button">Archive and clear checked</button>
+          <button id="mt-attic-clear" class="btn-danger" type="button">Archive and clear checked</button>
         </div>
         <p class="ex-hint">Archive writes a zip to the quarantine folder and verifies it. Archive and clear deletes the project folder only after that zip exists.</p>
         <div id="mt-attic-list" class="mt-checks"></div>
@@ -298,7 +302,7 @@
       </div>
     </details>
 
-    <details class="tool-section" id="sec-mt-bins" open>
+    <details class="tool-section" id="sec-mt-bins">
       <summary>Bins and lock files</summary>
       <div class="section-body">
         <div class="ex-field">
@@ -311,7 +315,7 @@
         <div class="ex-row">
           <button id="mt-bins-btn" type="button">List open bins and locks</button>
           <button id="mt-lock-scan" type="button">Scan for .lck files</button>
-          <button id="mt-lock-release" type="button">Release checked locks</button>
+          <button id="mt-lock-release" class="btn-danger" type="button">Release checked locks</button>
         </div>
         <div id="mt-bins-status" class="ex-status" role="status" aria-live="polite"></div>
         <div id="mt-bins" class="mt-report"></div>
@@ -320,7 +324,7 @@
       </div>
     </details>
 
-    <details class="tool-section" id="sec-mt-mxf" open>
+    <details class="tool-section" id="sec-mt-mxf">
       <summary>Media folders on disk</summary>
       <div class="section-body">
         <div class="ex-field">
@@ -334,15 +338,15 @@
         <div class="ex-inline">
           <label for="mt-mxf-limit" class="mt-label-inline">Limit</label>
           <input id="mt-mxf-limit" class="ex-input mt-input-short" type="number" min="1" value="5000">
-          <button id="mt-mxf-split" type="button">Split oldest</button>
-          <button id="mt-db-clean" type="button">Quarantine databases</button>
+          <button id="mt-mxf-split" class="btn-danger" type="button">Split oldest</button>
+          <button id="mt-db-clean" class="btn-danger" type="button">Quarantine databases</button>
         </div>
         <div id="mt-mxf-status" class="ex-status" role="status" aria-live="polite"></div>
         <div id="mt-mxf-report" class="mt-report"></div>
       </div>
     </details>
 
-    <details class="tool-section" id="sec-mt-commands" open>
+    <details class="tool-section" id="sec-mt-commands">
       <summary>Commands (menu items)</summary>
       <div class="section-body">
         <div class="ex-row">
@@ -355,13 +359,13 @@
       </div>
     </details>
 
-    <details class="tool-section" id="sec-mt-system" open>
+    <details class="tool-section" id="sec-mt-system">
       <summary>System and console</summary>
       <div class="section-body">
         <div class="ex-row">
           <button id="mt-svc-refresh" type="button">Refresh environment</button>
           <select id="mt-svc-name" class="ex-input" aria-label="Avid process to restart"></select>
-          <button id="mt-svc-restart" type="button">Restart process</button>
+          <button id="mt-svc-restart" class="btn-danger" type="button">Restart process</button>
         </div>
         <div id="mt-env" class="mt-report"></div>
         <div class="ex-row">
@@ -394,7 +398,6 @@
   </div>
 
   <div id="panel-review" class="tabpanel" role="tabpanel" aria-labelledby="tab-review" hidden>
-    <h2>Review</h2>
     <p class="coming-soon">Coming soon</p>
   </div>
 
