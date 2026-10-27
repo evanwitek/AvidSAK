@@ -1,0 +1,42 @@
+{
+    "category": "suite-plugin",
+    "name": "com.mediafolderpanel.mediafolderpanel",
+    "version": "0.0.1",
+    "displayName": "Avid Swiss Army Knife",
+    "description": "Browse a local folder tree and create bins from it",
+    "usesApi": [
+        "avid.mediacomposer.general",
+        "avid.mediacomposer.command",
+        "avid.mediacomposer.transcript"
+    ],
+    "subscribesToChannels": [
+    ],
+    "entitlements": [
+    ],
+    "companyPrefix": "mediafolderpanel",
+    "appShortName": "mediafolderpanel",
+    "uiItems": [
+        {
+            "type": "dropdown",
+            "menuName": "Tools",
+            "id": "mediafolderpanel",
+            "displayText": "Avid Swiss Army Knife",
+            "icon": "panel/icon.svg",
+            "url": "http://localhost:47831/"
+        }
+    ],
+    "windowSize": {
+        "initial": {
+            "width": "480",
+            "height": "640"
+        }
+    },
+    "targetHosts": [
+        "MediaComposer"
+    ],
+    "allowedDomains": [
+        "localhost:47831"
+    ],
+    "windowStyle": "floating",
+    "singleton": true
+}

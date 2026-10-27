@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Avid Swiss Army Knife</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Avid Swiss Army Knife</h1>
+  <div id="tabs" role="tablist" aria-label="Categories">
+    <button id="tab-organize" class="tab" type="button" role="tab" aria-selected="true" aria-controls="panel-organize" tabindex="0">Organize and Import</button>
+    <button id="tab-script" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel-script" tabindex="-1">Script Import</button>
+    <button id="tab-export" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel-export" tabindex="-1">Export</button>
+    <button id="tab-maintenance" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel-maintenance" tabindex="-1">Maintenance</button>
+    <button id="tab-review" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel-review" tabindex="-1">Review</button>
+  </div>
+
+  <div id="panel-organize" class="tabpanel" role="tabpanel" aria-labelledby="tab-organize">
+    <div class="panel-head">
+      <h2>Organize and Import</h2>
+      <button class="sections-all" type="button">Collapse all</button>
+    </div>
+
+    <details class="tool-section" id="sec-organize-folder" open>
+      <summary>Folder</summary>
+      <div class="section-body">
+        <div id="toolbar">
+          <div id="root-row">
+            <button id="browse-btn" type="button">Browse...</button>
+          </div>
+          <div id="root-header">
+            <span id="root-path" class="path">(no folder selected)</span>
+            <span id="root-count" class="count"></span>
+            <span id="root-state" class="state"></span>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="tool-section" id="sec-organize-tree" open>
+      <summary>Media folders</summary>
+      <div class="section-body">
+        <div id="select-row">
+          <button id="select-all-btn" type="button" disabled>Select all</button>
+          <button id="select-none-btn" type="button" disabled>Select none</button>
+        </div>
+        <div id="status" role="status"></div>
+        <ul id="tree"></ul>
+      </div>
+    </details>
+
+    <details class="tool-section" id="sec-organize-create" open>
+      <summary>Create bins</summary>
+      <div class="section-body">
+        <div id="action-row">
+          <button id="create-btn" type="button" disabled>Create bins and link</button>
+          <span id="plan" aria-live="polite"></span>
+        </div>
+        <div id="confirm-row" role="alertdialog" aria-labelledby="confirm-text" hidden>
+          <span id="confirm-text"></span>
+          <button id="confirm-cancel" type="button">Cancel</button>
+          <button id="confirm-ok" type="button">Create</button>
+        </div>
+        <div id="results">
+          <div id="summary" role="status" aria-live="polite" hidden></div>
+          <button id="details-btn" type="button" aria-expanded="false" aria-controls="output" hidden>Show details</button>
+          <div id="output" hidden></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <div id="panel-script" class="tabpanel" role="tabpanel" aria-labelledby="tab-script" hidden>
+    <div class="panel-head">
+      <h2>Script Import</h2>
+      <button class="sections-all" type="button">Collapse all</button>
+    </div>
+
+    <details class="tool-section" id="sec-script-file" open>
+      <summary>1. Transcript file</summary>
+      <div class="section-body">
+        <div class="ex-row">
+          <button id="sc-browse-btn" type="button">Browse...</button>
+        </div>
+        <div class="sc-file">
+          <span id="sc-file-name" class="path">(no file selected)</span>
+        </div>
+        <p id="sc-file-info" class="ex-hint"></p>
+        <div id="sc-file-status" class="ex-status" role="status" aria-live="polite"></div>
+        <p class="ex-hint">Plain text, one segment per line: <code>HH:MM:SS:FF</code>, a tab, then the text, or just the text. Blank lines are skipped.</p>
+      </div>
+    </details>
+
+    <details class="tool-section" id="sec-script-inject" open>
+      <summary>2. Inject</summary>
+      <div class="section-body">
+        <div class="ex-run">
+          <button id="sc-inject-btn" type="button" disabled>Inject transcript</button>
+          <span id="sc-inject-note" aria-live="polite"></span>
+        </div>
+        <div id="sc-summary" role="status" aria-live="polite" hidden></div>
+        <button id="sc-details-btn" type="button" aria-expanded="false" aria-controls="sc-log" hidden>Show details</button>
+        <div id="sc-log" class="ex-log" hidden></div>
+        <p class="ex-hint">Goes to the clip loaded in the active Media Composer monitor, using SetTranscriptInfo.</p>
+      </div>
+    </details>
+  </div>
+
+  <div id="panel-export" class="tabpanel" role="tabpanel" aria-labelledby="tab-export" hidden>
+    <div class="panel-head">
+      <h2>Export</h2>
+      <button class="sections-all" type="button">Collapse all</button>
+    </div>
+
+    <details class="tool-section" id="sec-export-choose" open>
+      <summary>1. Choose sequences</summary>
+      <div class="section-body">
+        <div class="ex-field">
+          <label for="ex-bin-path">Bin name or path (relative to the project)</label>
+          <div class="ex-inline">
+            <input id="ex-bin-path" class="ex-input" type="text" spellcheck="false" autocomplete="off" aria-describedby="ex-bin-hint">
+            <button id="ex-list-btn" type="button">List sequences</button>
+          </div>
+          <p id="ex-bin-hint" class="ex-hint">The .avb extension is added if you leave it off (Day 1 becomes Day 1.avb). Media Composer opens the bin read-only first.</p>
+        </div>
+        <div id="ex-bin-status" class="ex-status" role="status" aria-live="polite"></div>
+        <div class="ex-row">
+          <button id="ex-sel-all-btn" type="button" disabled>Select all</button>
+          <button id="ex-sel-none-btn" type="button" disabled>Select none</button>
+          <button id="ex-add-btn" type="button" disabled>Add selected to queue</button>
+        </div>
+        <ul id="ex-bin-list" class="ex-list" aria-label="Sequences in the bin"></ul>
+      </div>
+    </details>
+
+    <details class="tool-section" id="sec-export-queue" open>
+      <summary>2. Queue <span id="ex-queue-count">(0)</span></summary>
+      <div class="section-body">
+        <div id="ex-drop" class="ex-drop" role="group" aria-label="Drop sequences here">
+          <span class="ex-drop-title">Drop sequences here</span>
+          <span class="ex-drop-sub">Drag sequences from a Media Composer bin. Or pick them in the list above.</span>
+        </div>
+        <div id="ex-drop-status" class="ex-status" role="status" aria-live="polite"></div>
+        <p id="ex-queue-empty" class="ex-hint">The queue is empty.</p>
+        <ul id="ex-queue" class="ex-list" aria-label="Export queue"></ul>
+        <div class="ex-row">
+          <button id="ex-clear-btn" type="button" disabled>Clear queue</button>
+        </div>
+      </div>
+    </details>
+
+    <details class="tool-section" id="sec-export-settings" open>
+      <summary>3. Export settings</summary>
+      <div class="section-body">
+        <div class="ex-field">
+          <label for="ex-format">Format</label>
+          <div class="ex-inline">
+            <select id="ex-format" class="ex-input">
+              <option value="file">ExportFile (media file)</option>
+              <option value="edl">ExportEDL (EDL file)</option>
+              <option value="otio">ExportOTIO (OTIO file)</option>
+            </select>
+            <button id="ex-reload-btn" type="button">Reload presets</button>
+          </div>
+        </div>
+        <div id="ex-format-note" class="ex-status" role="status" aria-live="polite"></div>
+
+        <div id="ex-file-opts">
+          <div class="ex-field">
+            <label for="ex-preset-file">Export settings preset</label>
+            <select id="ex-preset-file" class="ex-input"></select>
+          </div>
+          <div class="ex-field">
+            <label for="ex-file-name">File name (optional)</label>
+            <input id="ex-file-name" class="ex-input" type="text" spellcheck="false" autocomplete="off" aria-describedby="ex-file-name-hint">
+            <p id="ex-file-name-hint" class="ex-hint"></p>
+          </div>
+          <div class="ex-field">
+            <label for="ex-dest">Destination folder (optional)</label>
+            <div class="ex-inline">
+              <input id="ex-dest" class="ex-input" type="text" spellcheck="false" autocomplete="off" aria-describedby="ex-dest-hint">
+              <button id="ex-browse-btn" type="button">Browse...</button>
+            </div>
+            <p id="ex-dest-hint" class="ex-hint">Empty = Media Composer uses the user's default directory.</p>
+          </div>
+          <div class="ex-field">
+            <label for="ex-in-dir">Subfolder name (optional)</label>
+            <input id="ex-in-dir" class="ex-input" type="text" spellcheck="false" autocomplete="off" aria-describedby="ex-in-dir-hint">
+            <p id="ex-in-dir-hint" class="ex-hint">Media Composer creates this folder inside the destination. Mainly useful for exports that write several files.</p>
+          </div>
+          <details id="ex-options">
+            <summary>Export options (all off by default)</summary>
+            <div id="ex-options-list"></div>
+          </details>
+        </div>
+
+        <div id="ex-edl-opts" hidden>
+          <div class="ex-field">
+            <label for="ex-preset-edl">EDL settings preset</label>
+            <select id="ex-preset-edl" class="ex-input"></select>
+          </div>
+        </div>
+
+        <div id="ex-otio-opts" hidden>
+          <div class="ex-field">
+            <label for="ex-preset-otio">OTIO settings preset</label>
+            <select id="ex-preset-otio" class="ex-input"></select>
+          </div>
+        </div>
+
+        <fieldset id="ex-tracks" class="ex-subgroup" hidden>
+          <legend>Tracks (leave every box empty to export all tracks)</legend>
+          <div id="ex-tracks-list"></div>
+        </fieldset>
+      </div>
+    </details>
+
+    <details class="tool-section" id="sec-export-run" open>
+      <summary>4. Run export</summary>
+      <div class="section-body">
+        <div class="ex-run">
+          <button id="ex-run-btn" type="button" disabled>Export queue</button>
+          <span id="ex-run-note" role="status" aria-live="polite"></span>
+        </div>
+        <div id="ex-summary" role="status" aria-live="polite" hidden></div>
+        <button id="ex-details-btn" type="button" aria-expanded="false" aria-controls="ex-log" hidden>Show details</button>
+        <div id="ex-log" class="ex-log" hidden></div>
+      </div>
+    </details>
+  </div>
+
+  <div id="panel-maintenance" class="tabpanel" role="tabpanel" aria-labelledby="tab-maintenance" hidden>
+    <div class="panel-head">
+      <h2>Maintenance</h2>
+      <button class="sections-all" type="button">Collapse all</button>
+    </div>
+
+    <p id="mt-banner" class="ex-status" role="status"></p>
+
+    <details class="tool-section" id="sec-mt-health" open>
+      <summary>Health check</summary>
+      <div class="section-body">
+        <div class="ex-row">
+          <button id="mt-check-btn" type="button">Run health check</button>
+          <button id="mt-env-btn" type="button">Refresh environment</button>
+        </div>
+        <div id="mt-summary" class="ex-status" role="status" aria-live="polite"></div>
+        <div id="mt-report" class="mt-report"></div>
+        <p class="ex-hint">Read-only. Media Composer details come from the PanelSDK; files, services and drives come from the helper on this machine.</p>
+      </div>
+    </details>
+
+    <details class="tool-section" id="sec-mt-databases" open>
+      <summary>Media databases</summary>
+      <div class="section-body">
+        <div class="ex-field">
+          <label for="mt-scan-path">Folder inside Avid MediaFiles (the SDK requires a number in it)</label>
+          <div class="ex-inline">
+            <select id="mt-volume" class="ex-input" aria-label="Media volume"></select>
+            <input id="mt-scan-path" class="ex-input" type="text" value="MXF\1" spellcheck="false" autocomplete="off">
+            <button id="mt-scan-btn" type="button">Rescan folder</button>
+          </div>
+          <p class="ex-hint">ScanAvidMediaFilesFolder updates or recreates the PMR and MDB databases. Do this when clips copied onto a drive stay offline.</p>
+        </div>
+        <div class="ex-row">
+          <button id="mt-refresh-dirs-btn" type="button">Refresh media directories</button>
+          <button id="mt-vol-refresh" type="button">Reload volumes</button>
+        </div>
+        <div id="mt-scan-note" class="ex-status" role="status" aria-live="polite"></div>
+        <div id="mt-volumes" class="mt-report"></div>
+      </div>
+    </details>
+
+    <details class="tool-section" id="sec-mt-caches" open>
+      <summary>Caches and state files</summary>
+      <div class="section-body">
+        <div class="ex-row">
+          <button id="mt-cache-refresh" type="button">Check sizes</button>
+          <button id="mt-cache-go" type="button">Rebuild selected</button>
+        </div>
+        <p class="ex-hint">Media Composer must be quit. Cache folders are renamed with an <code>_old-&lt;timestamp&gt;</code> suffix and rebuilt on next launch; MCState and site setting files are moved to quarantine.</p>
+        <div id="mt-cache-list" class="mt-checks"></div>
+        <div id="mt-cache-status" class="ex-status" role="status" aria-live="polite"></div>
+      </div>
+    </details>
+
+    <details class="tool-section" id="sec-mt-attic" open>
+      <summary>Avid Attic</summary>
+      <div class="section-body">
+        <div class="ex-row">
+          <button id="mt-attic-refresh" type="button">Check sizes</button>
+          <button id="mt-attic-archive" type="button">Archive checked</button>
+          <button id="mt-attic-clear" type="button">Archive and clear checked</button>
+        </div>
+        <p class="ex-hint">Archive writes a zip to the quarantine folder and verifies it. Archive and clear deletes the project folder only after that zip exists.</p>
+        <div id="mt-attic-list" class="mt-checks"></div>
+        <div id="mt-attic-status" class="ex-status" role="status" aria-live="polite"></div>
+      </div>
+    </details>
+
+    <details class="tool-section" id="sec-mt-bins" open>
+      <summary>Bins and lock files</summary>
+      <div class="section-body">
+        <div class="ex-field">
+          <label for="mt-project-path">Project folder (auto-filled when a project is open)</label>
+          <div class="ex-inline">
+            <input id="mt-project-path" class="ex-input" type="text" spellcheck="false" autocomplete="off">
+            <button id="mt-project-fill" type="button">Use open project</button>
+          </div>
+        </div>
+        <div class="ex-row">
+          <button id="mt-bins-btn" type="button">List open bins and locks</button>
+          <button id="mt-lock-scan" type="button">Scan for .lck files</button>
+          <button id="mt-lock-release" type="button">Release checked locks</button>
+        </div>
+        <div id="mt-bins-status" class="ex-status" role="status" aria-live="polite"></div>
+        <div id="mt-bins" class="mt-report"></div>
+        <div id="mt-lock-list" class="mt-checks"></div>
+        <div id="mt-lock-status" class="ex-status" role="status" aria-live="polite"></div>
+      </div>
+    </details>
+
+    <details class="tool-section" id="sec-mt-mxf" open>
+      <summary>Media folders on disk</summary>
+      <div class="section-body">
+        <div class="ex-field">
+          <label for="mt-mxf-folder">MXF folder on a media drive</label>
+          <div class="ex-inline">
+            <input id="mt-mxf-folder" class="ex-input" type="text" spellcheck="false" autocomplete="off" placeholder="D:\Avid MediaFiles\MXF\1">
+            <button id="mt-mxf-check" type="button">Check folder</button>
+          </div>
+          <p class="ex-hint">Avid's guidance is 5000 files or fewer per numbered folder. "Split" moves the oldest MXF files into the next numbered folder; nothing is deleted.</p>
+        </div>
+        <div class="ex-inline">
+          <label for="mt-mxf-limit" class="mt-label-inline">Limit</label>
+          <input id="mt-mxf-limit" class="ex-input mt-input-short" type="number" min="1" value="5000">
+          <button id="mt-mxf-split" type="button">Split oldest</button>
+          <button id="mt-db-clean" type="button">Quarantine databases</button>
+        </div>
+        <div id="mt-mxf-status" class="ex-status" role="status" aria-live="polite"></div>
+        <div id="mt-mxf-report" class="mt-report"></div>
+      </div>
+    </details>
+
+    <details class="tool-section" id="sec-mt-commands" open>
+      <summary>Commands (menu items)</summary>
+      <div class="section-body">
+        <div class="ex-row">
+          <button id="mt-cmd-load" type="button">Load commands</button>
+          <input id="mt-cmd-search" class="ex-input mt-search" type="search" placeholder="Filter by name or category" spellcheck="false" autocomplete="off" aria-label="Filter commands">
+        </div>
+        <p class="ex-hint">Command ids are only valid for this launch of Media Composer, so the list is read every time. Anything Media Composer puts in a menu appears here.</p>
+        <div id="mt-cmd-status" class="ex-status" role="status" aria-live="polite"></div>
+        <div id="mt-cmd-list" class="mt-report"></div>
+      </div>
+    </details>
+
+    <details class="tool-section" id="sec-mt-system" open>
+      <summary>System and console</summary>
+      <div class="section-body">
+        <div class="ex-row">
+          <button id="mt-svc-refresh" type="button">Refresh environment</button>
+          <select id="mt-svc-name" class="ex-input" aria-label="Avid process to restart"></select>
+          <button id="mt-svc-restart" type="button">Restart process</button>
+        </div>
+        <div id="mt-env" class="mt-report"></div>
+        <div class="ex-row">
+          <button id="mt-keys-workgroup-on" type="button">Console: workgroupoverride on</button>
+          <button id="mt-keys-workgroup-off" type="button">Console: workgroupoverride off</button>
+          <button id="mt-keys-reinit" type="button">Console: panelsdk reinit</button>
+          <button id="mt-keys-play" type="button">Alt+6 play in to out</button>
+        </div>
+        <p class="ex-hint">The console buttons bring Media Composer to the front and type a fixed command. Media Composer must be idle, not sitting on a modal dialog.</p>
+        <div id="mt-sys-status" class="ex-status" role="status" aria-live="polite"></div>
+      </div>
+    </details>
+
+    <details class="tool-section" id="sec-mt-limits">
+      <summary>What this tab cannot fix</summary>
+      <div class="section-body">
+        <ul class="mt-plain-list">
+          <li>Licensing: activation, deactivation and dongle updates stay in Avid Link and your Avid account.</li>
+          <li>Judging corrupt media: the tab can play a section (Alt+6) but not decide whether a clip, its media or the sequence is at fault.</li>
+          <li>Server-side repairs: Media Indexer, NEXIS and MediaCentral/Interplay problems need the server administrators.</li>
+          <li>Hardware: failing drives, RAID controllers, switches and cables.</li>
+          <li>Plug-in compatibility: the tab can list installed plugins by date, not decide which one to remove.</li>
+        </ul>
+      </div>
+    </details>
+
+    <div id="mt-summary-log" hidden></div>
+    <button id="mt-details-btn" type="button" aria-expanded="false" aria-controls="mt-log" hidden>Show details</button>
+    <div id="mt-log" class="ex-log" hidden></div>
+  </div>
+
+  <div id="panel-review" class="tabpanel" role="tabpanel" aria-labelledby="tab-review" hidden>
+    <h2>Review</h2>
+    <p class="coming-soon">Coming soon</p>
+  </div>
+
+  <script src="sections.js"></script>
+  <script src="sdk/mcapi-bundle.js"></script>
+  <script src="app.js"></script>
+  <script src="script.js"></script>
+  <script src="export.js"></script>
+  <script src="maintenance.js"></script>
+  <script src="tabs.js"></script>
+</body>
+</html>
